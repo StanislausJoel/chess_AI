@@ -421,8 +421,8 @@ class ChessBoard:
             for col in range(self.cols):
                 # Alternate tile colors
                 is_white_tile = (row + col) % 2 == 0
-                tile_color = (240, 217, 181) if is_white_tile else (181, 136, 99)
-                label_color = (181, 136, 99) if is_white_tile else (240, 217, 181)
+                tile_color = ("#6F4E37") if is_white_tile else ("#FED8B1")  
+                label_color = ("#FED8B1") if is_white_tile else ("#6F4E37")
 
                 # Draw the tile
                 pygame.draw.rect(screen, tile_color, (col * square_size, row * square_size, square_size, square_size))

@@ -7,8 +7,8 @@ class MainMenu:
         self.screen_height = screen_height
 
         # Fonts with enhanced sizes for readability
-        self.font = pygame.font.SysFont("Arial", 50)  # Larger font size for button text
-        self.title_font = pygame.font.SysFont("Arial", 80)  # Larger title font for better emphasis
+        self.font = pygame.font.Font("assets/Font/typography-Times-Regular.ttf", 50)  # Larger font size for button text
+        self.title_font = pygame.font.Font("assets/Font/typography-Times-Bold.ttf", 80)  # Larger title font for better emphasis
 
         # Button rectangles for menu options (larger buttons for better interaction)
         self.button_width = self.screen_width // 1.5  # Wider buttons
@@ -17,15 +17,15 @@ class MainMenu:
         self.exit_game_rect = pygame.Rect(self.screen_width // 4 - 60, self.screen_height // 2, self.button_width, self.button_height)
 
         # Colors
-        self.button_color = (60, 60, 60)  # Dark button color
-        self.button_hover_color = (100, 100, 100)  # Light hover color
-        self.text_color = (244, 244, 244)  # White text color for contrast
-        self.background_color = (181, 136, 99)  # Solid black background
+        self.button_color = '#6F4E37'  # Dark brown for buttons
+        self.button_hover_color = '#A67B5B'  # Light brown for hover
+        self.text_color = '#ECB176'  # Pastel orange for text
+        self.background_color = '#FED8B1'  # Peach soft for background
 
     def display_menu(self):
         running = True
         while running:
-            self.screen.fill(self.background_color)  # Solid black background
+            self.screen.fill(self.background_color)  # Peach soft background
 
             # Render the title with enhanced font size
             title_text = self.title_font.render("Chess Game", True, self.text_color)
