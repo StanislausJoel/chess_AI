@@ -1,5 +1,3 @@
-from warnings import catch_warnings
-
 import pygame
 import chess
 from ai_engine.search import minimax
@@ -20,6 +18,7 @@ class ChessGame:
         self.piece_images = self.load_piece_images()
         self.selected_square = None
         self.valid_moves = []
+        self.transposition_table = {}
 
     def load_piece_images(self):
         pieces = ["bp", "br", "bn", "bb", "bq", "bk", "wp", "wr", "wn", "wb", "wq", "wk"]
@@ -94,6 +93,49 @@ class ChessGame:
             self.selected_square = None
             self.valid_moves = []
 
+        if self.board.is_checkmate() or self.board.is_game_over():
+            self.display_game_over()
+            pygame.display.update()
+
+    def display_game_over(self):
+        game_over_text = self.font.render('Game Over', True, (255, 0, 0))
+        text_rect = game_over_text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2 - 50))
+
+        button_width = 200
+        button_height = 50
+        button_color = (0, 255, 0)
+        button_text = self.font.render('Restart', True, (255, 255, 255))
+        button_rect = pygame.Rect(self.screen.get_width() // 2 - button_width // 2, self.screen.get_height() // 2 + 20,
+                                  button_width, button_height)
+        button_text_rect = button_text.get_rect(center=button_rect.center)
+
+        self.screen.fill((255, 255, 255))
+        self.screen.blit(game_over_text, text_rect)
+
+        pygame.draw.rect(self.screen, button_color, button_rect)
+        self.screen.blit(button_text, button_text_rect)
+        pygame.display.flip()
+
+        waiting_for_input = True
+        while waiting_for_input:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = event.pos
+                    if button_rect.collidepoint(mouse_x, mouse_y):
+                        self.restart_game()
+                        waiting_for_input = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_r:
+                        self.restart_game()
+                        waiting_for_input = False
+
+    def restart_game(self):
+        self.board.reset()
+        game.run()
+
     def ai_move(self):
         """Make the best move for the AI using minimax."""
         best_move = None
@@ -103,7 +145,7 @@ class ChessGame:
 
         for move in self.board.legal_moves:
             self.board.push(move)
-            board_value = minimax(self.board, 3, not self.board.turn, alpha, beta)
+            board_value = minimax(self.board, 4, not self.board.turn, alpha, beta, self.transposition_table)
             self.board.pop()
 
             if self.board.turn:  # Maximizing player
@@ -127,7 +169,6 @@ class ChessGame:
                 elif event.type == pygame.MOUSEBUTTONDOWN and self.board.turn:
                     self.handle_click(event.pos)
 
-            # If it's AI's turn, make a move
             if not self.board.turn:
                 self.ai_move()
 
