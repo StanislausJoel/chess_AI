@@ -1,703 +1,10 @@
-# import chess
-# import concurrent.futures
-#
-# transposition_table = {}
-#
-# def quiescence(board, alpha, beta):
-#     stand_pat = evaluate(board)
-#     if stand_pat >= beta:
-#         return beta
-#     if alpha < stand_pat:
-#         alpha = stand_pat
-#
-#     legal_moves = list(board.legal_moves)
-#     # Prioritize captures and checks for more effective pruning
-#     legal_moves.sort(key=lambda move: (board.is_capture(move) or board.gives_check(move), move), reverse=True)
-#
-#     for move in legal_moves:
-#         if board.is_capture(move) or board.gives_check(move):
-#             board.push(move)
-#             score = -quiescence(board, -beta, -alpha)
-#             board.pop()
-#             if score >= beta:
-#                 return beta
-#             if score > alpha:
-#                 alpha = score
-#     return alpha
-#
-#
-# def minimax(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     # Check for previously evaluated positions
-#     board_hash = hash(board.fen())  # Unique key for the board's FEN string
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}  # Store in transposition table
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}  # Store the evaluation
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}  # Store the evaluation
-#         return min_eval
-#
-#
-# def evaluate(board):
-#     piece_values = {
-#         chess.PAWN: 100,
-#         chess.KNIGHT: 320,
-#         chess.BISHOP: 330,
-#         chess.ROOK: 500,
-#         chess.QUEEN: 900,
-#         chess.KING: 20000
-#     }
-#     value = 0
-#     for piece in board.piece_map().values():
-#         piece_value = piece_values.get(piece.piece_type, 0)
-#         value += piece_value if piece.color == chess.WHITE else -piece_value
-#     return value
-#
-#
-# def negaScout(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     # NegaScout (Principal Variation Search)
-#     # Try to get the best move first and then use the normal alpha-beta pruning
-#     board_hash = hash(board.fen())
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, False, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, True, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def iterative_deepening(board, max_depth):
-#     best_move = None
-#     transposition_table.clear()  # Clear transposition table for each search
-#     for depth in range(1, max_depth + 1):
-#         alpha, beta = -float('inf'), float('inf')
-#         legal_moves = list(board.legal_moves)
-#         # Use parallelization to explore multiple moves concurrently
-#         with concurrent.futures.ThreadPoolExecutor() as executor:
-#             futures = []
-#             for move in legal_moves:
-#                 board.push(move)
-#                 futures.append(executor.submit(negaScout, board, depth - 1, False, -beta, -alpha, transposition_table))
-#                 board.pop()
-#
-#             for future in futures:
-#                 result = future.result()
-#                 if result > alpha:
-#                     alpha = result
-#                     best_move = legal_moves[futures.index(future)]
-#     return best_move
-
-
-
-
-# import chess
-# import concurrent.futures
-#
-# transposition_table = {}
-#
-# def quiescence(board, alpha, beta):
-#     stand_pat = evaluate(board)
-#     if stand_pat >= beta:
-#         return beta
-#     if alpha < stand_pat:
-#         alpha = stand_pat
-#
-#     legal_moves = list(board.legal_moves)
-#     # Prioritize captures and checks for more effective pruning
-#     legal_moves.sort(key=lambda move: (board.is_capture(move) or board.gives_check(move), move), reverse=True)
-#
-#     for move in legal_moves:
-#         if board.is_capture(move) or board.gives_check(move):
-#             board.push(move)
-#             score = -quiescence(board, -beta, -alpha)
-#             board.pop()
-#             if score >= beta:
-#                 return beta
-#             if score > alpha:
-#                 alpha = score
-#     return alpha
-#
-#
-# def minimax(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     # Check for previously evaluated positions
-#     board_hash = hash(board.fen())  # Unique key for the board's FEN string
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}  # Store in transposition table
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}  # Store the evaluation
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}  # Store the evaluation
-#         return min_eval
-#
-#
-# def evaluate(board):
-#     piece_values = {
-#         chess.PAWN: 100,
-#         chess.KNIGHT: 320,
-#         chess.BISHOP: 330,
-#         chess.ROOK: 500,
-#         chess.QUEEN: 900,
-#         chess.KING: 20000
-#     }
-#     value = 0
-#     for piece in board.piece_map().values():
-#         piece_value = piece_values.get(piece.piece_type, 0)
-#         value += piece_value if piece.color == chess.WHITE else -piece_value
-#     return value
-#
-#
-# def negaScout(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     # NegaScout (Principal Variation Search)
-#     # Try to get the best move first and then use the normal alpha-beta pruning
-#     board_hash = hash(board.fen())
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, False, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, True, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def iterative_deepening(board, max_depth):
-#     best_move = None
-#     transposition_table.clear()  # Clear transposition table for each search
-#     for depth in range(1, max_depth + 1):
-#         alpha, beta = -float('inf'), float('inf')
-#         legal_moves = list(board.legal_moves)
-#
-#         # Use parallelization to explore multiple moves concurrently
-#         with concurrent.futures.ProcessPoolExecutor() as executor:  # Using ProcessPoolExecutor instead of ThreadPoolExecutor for CPU-bound tasks
-#             futures = []
-#             for move in legal_moves:
-#                 board.push(move)
-#                 futures.append(executor.submit(negaScout, board, depth - 1, False, -beta, -alpha, transposition_table))
-#                 board.pop()
-#
-#             for future in futures:
-#                 result = future.result()
-#                 if result > alpha:
-#                     alpha = result
-#                     best_move = legal_moves[futures.index(future)]
-#     return best_move
-
-# import chess
-# import concurrent.futures
-# import hashlib
-#
-# transposition_table = {}
-#
-# def quiescence(board, alpha, beta):
-#     stand_pat = evaluate(board)
-#     if stand_pat >= beta:
-#         return beta
-#     if alpha < stand_pat:
-#         alpha = stand_pat
-#
-#     legal_moves = list(board.legal_moves)
-#     legal_moves.sort(key=lambda move: (board.is_capture(move) or board.gives_check(move), move), reverse=True)
-#
-#     for move in legal_moves:
-#         if board.is_capture(move) or board.gives_check(move):
-#             board.push(move)
-#             score = -quiescence(board, -beta, -alpha)
-#             board.pop()
-#             if score >= beta:
-#                 return beta
-#             if score > alpha:
-#                 alpha = score
-#     return alpha
-#
-#
-# def evaluate(board):
-#     piece_values = {
-#         chess.PAWN: 100,
-#         chess.KNIGHT: 320,
-#         chess.BISHOP: 330,
-#         chess.ROOK: 500,
-#         chess.QUEEN: 900,
-#         chess.KING: 20000
-#     }
-#     value = 0
-#     for piece in board.piece_map().values():
-#         piece_value = piece_values.get(piece.piece_type, 0)
-#         value += piece_value if piece.color == chess.WHITE else -piece_value
-#     return value
-#
-#
-# def get_board_hash(board):
-#     # Return a unique hash for the board using the FEN string
-#     return hashlib.sha256(board.fen().encode('utf-8')).hexdigest()
-#
-#
-# def minimax(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     board_hash = get_board_hash(board)
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def negaScout(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     board_hash = get_board_hash(board)
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, False, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, True, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def iterative_deepening(board, max_depth):
-#     best_move = None
-#     transposition_table.clear()  # Clear transposition table for each search
-#     for depth in range(1, max_depth + 1):
-#         alpha, beta = -float('inf'), float('inf')
-#         legal_moves = list(board.legal_moves)
-#
-#         # Parallelize search at the root level
-#         with concurrent.futures.ProcessPoolExecutor() as executor:
-#             futures = []
-#             for move in legal_moves:
-#                 board.push(move)
-#                 futures.append(executor.submit(negaScout, board, depth - 1, False, -beta, -alpha, transposition_table))
-#                 board.pop()
-#
-#             for future in futures:
-#                 result = future.result()
-#                 if result > alpha:
-#                     alpha = result
-#                     best_move = legal_moves[futures.index(future)]
-#     return best_move
-
-# import chess
-# import concurrent.futures
-# import hashlib
-# import cupy as cp
-#
-# # This will hold transposition information.
-# transposition_table = {}
-#
-#
-# def quiescence(board, alpha, beta):
-#     stand_pat = evaluate(board)
-#     if stand_pat >= beta:
-#         return beta
-#     if alpha < stand_pat:
-#         alpha = stand_pat
-#
-#     legal_moves = list(board.legal_moves)
-#     legal_moves.sort(key=lambda move: (board.is_capture(move) or board.gives_check(move), move), reverse=True)
-#
-#     for move in legal_moves:
-#         if board.is_capture(move) or board.gives_check(move):
-#             board.push(move)
-#             score = -quiescence(board, -beta, -alpha)
-#             board.pop()
-#             if score >= beta:
-#                 return beta
-#             if score > alpha:
-#                 alpha = score
-#     return alpha
-#
-#
-# def evaluate(board):
-#     piece_values = {
-#         chess.PAWN: 100,
-#         chess.KNIGHT: 320,
-#         chess.BISHOP: 330,
-#         chess.ROOK: 500,
-#         chess.QUEEN: 900,
-#         chess.KING: 20000
-#     }
-#
-#     # We will use Cupy arrays to accelerate evaluation
-#     piece_map = board.piece_map()
-#     pieces = cp.array(
-#         [piece_values.get(piece.piece_type, 0) if piece.color == chess.WHITE else -piece_values.get(piece.piece_type, 0)
-#          for piece in piece_map.values()])
-#
-#     # Return the sum of the pieces values
-#     return cp.sum(pieces).item()
-#
-#
-# def get_board_hash(board):
-#     return hashlib.sha256(board.fen().encode('utf-8')).hexdigest()
-#
-#
-# def minimax(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     board_hash = get_board_hash(board)
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         for move in legal_moves:
-#             board.push(move)
-#             eval = -minimax(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def negaScout(board, depth, maximizing_player, alpha, beta, transposition_table):
-#     board_hash = get_board_hash(board)
-#     if board_hash in transposition_table:
-#         entry = transposition_table[board_hash]
-#         if entry['depth'] >= depth:
-#             return entry['value']
-#
-#     if depth == 0 or board.is_game_over():
-#         evaluation = evaluate(board)
-#         transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-#         return evaluation
-#
-#     legal_moves = list(board.legal_moves)
-#     best_move = None
-#     if maximizing_player:
-#         max_eval = float('-inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, False, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-#             board.pop()
-#             max_eval = max(max_eval, eval)
-#             alpha = max(alpha, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-#         return max_eval
-#     else:
-#         min_eval = float('inf')
-#         first_move = True
-#         for move in legal_moves:
-#             board.push(move)
-#             if first_move:
-#                 eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#                 first_move = False
-#             else:
-#                 eval = -negaScout(board, depth - 1, True, -alpha - 1, -alpha, transposition_table)
-#                 if alpha < eval < beta:
-#                     eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-#             board.pop()
-#             min_eval = min(min_eval, eval)
-#             beta = min(beta, eval)
-#             if beta <= alpha:
-#                 break
-#         transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-#         return min_eval
-#
-#
-# def iterative_deepening(board, max_depth):
-#     best_move = None
-#     transposition_table.clear()  # Clear transposition table for each search
-#     for depth in range(1, max_depth + 1):
-#         alpha, beta = -float('inf'), float('inf')
-#         legal_moves = list(board.legal_moves)
-#
-#         # Parallelize search at the root level using CUDA
-#         with concurrent.futures.ProcessPoolExecutor() as executor:
-#             futures = []
-#             for move in legal_moves:
-#                 board.push(move)
-#                 futures.append(executor.submit(negaScout, board, depth - 1, False, -beta, -alpha, transposition_table))
-#                 board.pop()
-#
-#             for future in futures:
-#                 result = future.result()
-#                 if result > alpha:
-#                     alpha = result
-#                     best_move = legal_moves[futures.index(future)]
-#     return best_move
-#
-
 import chess
-import concurrent.futures
-import hashlib
-import tensorflow as tf
+import time
 
-# This will hold transposition information.
+# Transposition table to store previously evaluated positions
 transposition_table = {}
 
-if tf.config.list_physical_devices('GPU'):
-    print("GPU is available.")
-else:
-    print("GPU is not available.")
-
-def quiescence(board, alpha, beta):
-    stand_pat = evaluate(board)
-    if stand_pat >= beta:
-        return beta
-    if alpha < stand_pat:
-        alpha = stand_pat
-
-    legal_moves = list(board.legal_moves)
-    legal_moves.sort(key=lambda move: (board.is_capture(move) or board.gives_check(move), move), reverse=True)
-
-    for move in legal_moves:
-        if board.is_capture(move) or board.gives_check(move):
-            board.push(move)
-            score = -quiescence(board, -beta, -alpha)
-            board.pop()
-            if score >= beta:
-                return beta
-            if score > alpha:
-                alpha = score
-    return alpha
-
-
+# Evaluation Function with Pawn Promotion Consideration
 def evaluate(board):
     piece_values = {
         chess.PAWN: 100,
@@ -708,134 +15,157 @@ def evaluate(board):
         chess.KING: 20000
     }
 
-    piece_map = board.piece_map()
+    # Positional Evaluation Factors
+    king_safety = 0
+    for square in board.pieces(chess.KING, chess.WHITE):
+        king_safety += evaluate_king_safety(board, chess.WHITE)
+    for square in board.pieces(chess.KING, chess.BLACK):
+        king_safety -= evaluate_king_safety(board, chess.BLACK)
 
-    # Specify that the tensor should be created on the GPU
-    with tf.device('/GPU:0'):  # Explicitly tell TensorFlow to use the GPU
-        pieces = tf.constant(
-            [piece_values.get(piece.piece_type, 0) if piece.color == chess.WHITE else -piece_values.get(piece.piece_type, 0)
-             for piece in piece_map.values()], dtype=tf.float32)
+    # Central Control
+    center_control = 0
+    center_squares = [chess.D4, chess.D5, chess.E4, chess.E5]
+    for square in center_squares:
+        if board.piece_at(square):
+            piece = board.piece_at(square)
+            center_control += 50 if piece.color == chess.WHITE else -50
 
-        # Sum all pieces and return the result
-        return tf.reduce_sum(pieces).numpy()  # Convert tensor back to numpy for return value
+    # Piece Development
+    development_bonus = 0
+    for square in board.pieces(chess.KNIGHT, chess.WHITE):
+        if square not in [chess.B1, chess.G1]:
+            development_bonus += 10
+    for square in board.pieces(chess.KNIGHT, chess.BLACK):
+        if square not in [chess.B8, chess.G8]:
+            development_bonus -= 10
+
+    # Piece Mobility
+    mobility_score = len(list(board.legal_moves))  # Simple mobility score
+
+    # Passed Pawn Bonus
+    passed_pawn_bonus = 0
+    promotion_bonus = 0  # New promotion bonus
+    for square in board.pieces(chess.PAWN, chess.WHITE):
+        if is_passed_pawn(board, square, chess.WHITE):
+            passed_pawn_bonus += 50
+        if chess.square_rank(square) == 6:  # 7th rank
+            promotion_bonus += 100
+    for square in board.pieces(chess.PAWN, chess.BLACK):
+        if is_passed_pawn(board, square, chess.BLACK):
+            passed_pawn_bonus -= 50
+        if chess.square_rank(square) == 1:  # 2nd rank
+            promotion_bonus -= 100
+
+    # Piece Values
+    value = 0
+    for piece in board.piece_map().values():
+        piece_value = piece_values.get(piece.piece_type, 0)
+        value += piece_value if piece.color == chess.WHITE else -piece_value
+
+    # Combine all evaluation factors
+    return value + center_control + development_bonus + king_safety + mobility_score + passed_pawn_bonus + promotion_bonus
 
 
-def get_board_hash(board):
-    return hashlib.sha256(board.fen().encode('utf-8')).hexdigest()
+# Check if a pawn is passed
+def is_passed_pawn(board, pawn_square, color):
+    direction = 1 if color == chess.WHITE else -1
+    file = chess.square_file(pawn_square)
+    rank = chess.square_rank(pawn_square)
 
+    # Check if no opposing pawns are in the way
+    for offset in [-1, 1]:
+        check_square = chess.square(file + offset, rank + direction)
+        if board.piece_at(check_square) and board.piece_at(check_square).color != color:
+            return False
+    return True
 
-def minimax(board, depth, maximizing_player, alpha, beta, transposition_table):
-    board_hash = get_board_hash(board)
+# King Safety Evaluation (simple version)
+def evaluate_king_safety(board, color):
+    safety_score = 0
+    king_square = board.king(color)
+    if king_square:
+        # Check for nearby pieces and structure
+        if board.is_attacked_by(not color, king_square):
+            safety_score -= 50  # Penalize if the king is under attack
+        else:
+            safety_score += 10  # Reward if the king is safe
+    return safety_score
+
+# Move Ordering (enhanced for development, center control, etc.)
+def order_moves(board, legal_moves):
+    move_scores = []
+    for move in legal_moves:
+        board.push(move)
+        score = evaluate(board)  # Quick evaluation
+        board.pop()
+        move_scores.append((move, score))
+    move_scores.sort(key=lambda x: x[1], reverse=True)
+    return [move for move, _ in move_scores]
+
+# Minimax with Alpha-Beta Pruning and Transposition Table
+def minimax(board, depth, maximizing_player, alpha, beta):
+    board_hash = hash(board.fen())
     if board_hash in transposition_table:
-        entry = transposition_table[board_hash]
-        if entry['depth'] >= depth:
-            return entry['value']
+        return transposition_table[board_hash]
 
     if depth == 0 or board.is_game_over():
         evaluation = evaluate(board)
-        transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
+        transposition_table[board_hash] = evaluation
         return evaluation
 
     legal_moves = list(board.legal_moves)
-    best_move = None
+    legal_moves = order_moves(board, legal_moves)
+
     if maximizing_player:
         max_eval = float('-inf')
         for move in legal_moves:
             board.push(move)
-            eval = -minimax(board, depth - 1, False, -beta, -alpha, transposition_table)
+            eval = -minimax(board, depth - 1, False, -beta, -alpha)
             board.pop()
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha:
-                break
-        transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
+                break  # Beta cut-off
+        transposition_table[board_hash] = max_eval
         return max_eval
     else:
         min_eval = float('inf')
         for move in legal_moves:
             board.push(move)
-            eval = -minimax(board, depth - 1, True, -beta, -alpha, transposition_table)
+            eval = -minimax(board, depth - 1, True, -beta, -alpha)
             board.pop()
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
-                break
-        transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
+                break  # Alpha cut-off
+        transposition_table[board_hash] = min_eval
         return min_eval
 
-
-def negaScout(board, depth, maximizing_player, alpha, beta, transposition_table):
-    board_hash = get_board_hash(board)
-    if board_hash in transposition_table:
-        entry = transposition_table[board_hash]
-        if entry['depth'] >= depth:
-            return entry['value']
-
-    if depth == 0 or board.is_game_over():
-        evaluation = evaluate(board)
-        transposition_table[board_hash] = {'value': evaluation, 'depth': depth}
-        return evaluation
-
-    legal_moves = list(board.legal_moves)
+def iterative_deepening(board, max_depth, time_limit):
     best_move = None
-    if maximizing_player:
-        max_eval = float('-inf')
-        first_move = True
-        for move in legal_moves:
-            board.push(move)
-            if first_move:
-                eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-                first_move = False
-            else:
-                eval = -negaScout(board, depth - 1, False, -alpha - 1, -alpha, transposition_table)
-                if alpha < eval < beta:
-                    eval = -negaScout(board, depth - 1, False, -beta, -alpha, transposition_table)
-            board.pop()
-            max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
-        transposition_table[board_hash] = {'value': max_eval, 'depth': depth}
-        return max_eval
-    else:
-        min_eval = float('inf')
-        first_move = True
-        for move in legal_moves:
-            board.push(move)
-            if first_move:
-                eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-                first_move = False
-            else:
-                eval = -negaScout(board, depth - 1, True, -alpha - 1, -alpha, transposition_table)
-                if alpha < eval < beta:
-                    eval = -negaScout(board, depth - 1, True, -beta, -alpha, transposition_table)
-            board.pop()
-            min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        transposition_table[board_hash] = {'value': min_eval, 'depth': depth}
-        return min_eval
+    start_time = time.time()
 
-
-def iterative_deepening(board, max_depth):
-    best_move = None
-    transposition_table.clear()  # Clear transposition table for each search
     for depth in range(1, max_depth + 1):
         alpha, beta = -float('inf'), float('inf')
+        current_best_move = None
         legal_moves = list(board.legal_moves)
+        legal_moves = order_moves(board, legal_moves)
 
-        # Parallelize search at the root level using concurrent futures
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            futures = []
-            for move in legal_moves:
-                board.push(move)
-                futures.append(executor.submit(negaScout, board, depth - 1, False, -beta, -alpha, transposition_table))
-                board.pop()
+        for move in legal_moves:
+            if time.time() - start_time >= time_limit:
+                return best_move
 
-            for future in futures:
-                result = future.result()
-                if result > alpha:
-                    alpha = result
-                    best_move = legal_moves[futures.index(future)]
+            board.push(move)
+            score = -minimax(board, depth - 1, False, -beta, -alpha)
+            board.pop()
+
+            if score > alpha:
+                alpha = score
+                current_best_move = move
+
+        best_move = current_best_move
+
+        if time.time() - start_time >= time_limit:
+            break
+
     return best_move

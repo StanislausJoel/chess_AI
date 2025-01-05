@@ -1,6 +1,14 @@
 import pygame
 import chess
-from ai_engine.search import minimax
+from ai_engine.search import minimax, iterative_deepening
+from stockfish import Stockfish
+import time
+
+# from main import board
+pygame.mixer.init()
+stockfish = Stockfish("../stockfish/stockfish-windows-x86-64-avx2.exe")
+capture_sound = pygame.mixer.Sound("../assets/sfx/capture.mp3")
+move_sound = pygame.mixer.Sound("../assets/sfx/move-self.mp3")
 
 class ChessGame:
     def __init__(self, square_size=80):
@@ -82,6 +90,7 @@ class ChessGame:
             move = chess.Move(self.selected_square, square)
             if move in self.board.legal_moves:
                 self.board.push(move)
+                move_sound.play()
             else:
                 for legal_move in self.board.legal_moves:
                     if move.from_square == legal_move.from_square and move.to_square == legal_move.to_square:
@@ -89,13 +98,13 @@ class ChessGame:
                             promotion_move = chess.Move(self.selected_square, square, promotion=legal_move.promotion)
                             if promotion_move in self.board.legal_moves:
                                 self.board.push(promotion_move)
+                                move_sound.play()
+
+            if self.board.is_capture(move):
+                capture_sound.play()
 
             self.selected_square = None
             self.valid_moves = []
-
-        if self.board.is_checkmate() or self.board.is_game_over():
-            self.display_game_over()
-            pygame.display.update()
 
     def display_game_over(self):
         game_over_text = self.font.render('Game Over', True, (255, 0, 0))
@@ -137,37 +146,37 @@ class ChessGame:
         game.run()
 
     def ai_move(self):
-        """Make the best move for the AI using minimax."""
-        best_move = None
-        best_value = float('-inf') if self.board.turn else float('inf')
-        alpha = float('-inf')
-        beta = float('inf')
+        time.sleep(0.5)
+        max_depth = 6
+        time_limit = 5
 
-        for move in self.board.legal_moves:
-            self.board.push(move)
-            board_value = minimax(self.board, 4, not self.board.turn, alpha, beta, self.transposition_table)
-            self.board.pop()
-
-            if self.board.turn:  # Maximizing player
-                if board_value > best_value:
-                    best_value = board_value
-                    best_move = move
-            else:  # Minimizing player
-                if board_value < best_value:
-                    best_value = board_value
-                    best_move = move
+        best_move = iterative_deepening(self.board, max_depth, time_limit)
 
         if best_move:
             self.board.push(best_move)
+            if self.board.is_capture(best_move):
+                capture_sound.play()
+            else:
+                move_sound.play()
 
-    def run(self):
-        """Main game loop."""
+    def run(self, player):
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN and self.board.turn:
+                elif event.type == pygame.MOUSEBUTTONDOWN and player == "player" and self.board.turn:
                     self.handle_click(event.pos)
+                elif player == "stockfish":
+                    time.sleep(0.5)
+                    fen = self.board.fen()
+                    stockfish.set_fen_position(fen)
+                    move = stockfish.get_best_move()
+                    self.board.push_uci(move)
+
+                self.screen.fill((0, 0, 0))
+                self.draw_board()
+                pygame.display.update()
+
 
             if not self.board.turn:
                 self.ai_move()
@@ -177,9 +186,15 @@ class ChessGame:
             pygame.display.flip()
             self.clock.tick(60)
 
+            if self.board.is_checkmate() or self.board.is_game_over():
+                time.sleep(3)
+                self.display_game_over()
+                pygame.display.update()
+
         pygame.quit()
 
 
 if __name__ == "__main__":
+    current_player = "player"  # player or stockfish
     game = ChessGame()
-    game.run()
+    game.run(current_player)
