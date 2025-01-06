@@ -5,84 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="424eb994-3917-4a29-b89b-ea4bf9ee52f8" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/stockfish/AUTHORS" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/CITATION.cff" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/CONTRIBUTING.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/Copying.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/Top CPU Contributors.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/benchmark.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/benchmark.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/bitboard.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/bitboard.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/engine.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/engine.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/evaluate.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/evaluate.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/incbin/UNLICENCE" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/incbin/incbin.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/main.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/memory.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/memory.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/misc.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/misc.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/movegen.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/movegen.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/movepick.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/movepick.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/features/half_ka_v2_hm.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/features/half_ka_v2_hm.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/layers/affine_transform.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/layers/affine_transform_sparse_input.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/layers/clipped_relu.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/layers/simd.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/layers/sqr_clipped_relu.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/network.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/network.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_accumulator.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_architecture.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_common.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_feature_transformer.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_misc.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/nnue/nnue_misc.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/numa.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/perft.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/position.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/position.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/score.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/score.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/search.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/search.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/syzygy/tbprobe.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/syzygy/tbprobe.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/thread.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/thread.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/thread_win32_osx.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/timeman.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/timeman.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/tt.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/tt.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/tune.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/tune.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/types.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/uci.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/uci.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/ucioption.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/src/ucioption.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/stockfish-windows-x86-64-avx2.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Advanced-topics.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Compiling-from-source.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Developers.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Download-and-usage.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Governance-and-responsibilities.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Home.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Regression-Tests.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Stockfish-FAQ.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Terminology.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/UCI-&amp;-Commands.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/Useful-data.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/stockfish/wiki/_Footer.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai_engine/search.py" beforeDir="false" afterPath="$PROJECT_DIR$/ai_engine/search.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/board.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/board.py" afterDir="false" />
@@ -159,7 +81,10 @@
       <workItem from="1735722139515" duration="9134000" />
       <workItem from="1735731357143" duration="1237000" />
       <workItem from="1735873968503" duration="21000" />
-      <workItem from="1736085305065" duration="7343000" />
+      <workItem from="1736085305065" duration="7844000" />
+      <workItem from="1736139612088" duration="234000" />
+      <workItem from="1736140371682" duration="19000" />
+      <workItem from="1736174982442" duration="4939000" />
     </task>
     <servers />
   </component>
@@ -172,6 +97,6 @@
     <SUITE FILE_PATH="coverage/chess_AI$board_import.coverage" NAME="board_import Coverage Results" MODIFIED="1735717832829" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
     <SUITE FILE_PATH="coverage/chess_AI$search.coverage" NAME="search Coverage Results" MODIFIED="1735732531491" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ai_engine" />
     <SUITE FILE_PATH="coverage/chess_AI$main.coverage" NAME="main Coverage Results" MODIFIED="1735705499719" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/chess_AI$board.coverage" NAME="board Coverage Results" MODIFIED="1736092549047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
+    <SUITE FILE_PATH="coverage/chess_AI$board.coverage" NAME="board Coverage Results" MODIFIED="1736179944492" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/core" />
   </component>
 </project>

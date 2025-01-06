@@ -1,6 +1,6 @@
 import pygame
 import chess
-from ai_engine.search import minimax, iterative_deepening
+from ai_engine.search import iterative_deepening
 from stockfish import Stockfish
 import time
 
@@ -106,7 +106,7 @@ class ChessGame:
             self.selected_square = None
             self.valid_moves = []
 
-    def display_game_over(self):
+    def display_game_over(self, player, ai_type):
         game_over_text = self.font.render('Game Over', True, (255, 0, 0))
         text_rect = game_over_text.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2 - 50))
 
@@ -134,23 +134,23 @@ class ChessGame:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = event.pos
                     if button_rect.collidepoint(mouse_x, mouse_y):
-                        self.restart_game()
+                        self.restart_game(player, ai_type)
                         waiting_for_input = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_r:
-                        self.restart_game()
+                        self.restart_game(player, ai_type)
                         waiting_for_input = False
 
-    def restart_game(self):
+    def restart_game(self, player, ai_type):
         self.board.reset()
-        game.run()
+        game.run(player, ai_type)
 
-    def ai_move(self):
+    def ai_move(self, ai_type):
         time.sleep(0.5)
-        max_depth = 6
-        time_limit = 5
+        max_depth = 20
+        time_limit = 3
 
-        best_move = iterative_deepening(self.board, max_depth, time_limit)
+        best_move = iterative_deepening(self.board, max_depth, time_limit, self.board.turn, ai_type)
 
         if best_move:
             self.board.push(best_move)
@@ -159,19 +159,16 @@ class ChessGame:
             else:
                 move_sound.play()
 
-    def run(self, player):
+    def run(self, player, ai_type):
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN and player == "player" and self.board.turn:
                     self.handle_click(event.pos)
-                elif player == "stockfish":
+                else:
                     time.sleep(0.5)
-                    fen = self.board.fen()
-                    stockfish.set_fen_position(fen)
-                    move = stockfish.get_best_move()
-                    self.board.push_uci(move)
+                    self.ai_move(player)
 
                 self.screen.fill((0, 0, 0))
                 self.draw_board()
@@ -179,7 +176,7 @@ class ChessGame:
 
 
             if not self.board.turn:
-                self.ai_move()
+                self.ai_move(ai_type)
 
             self.screen.fill((0, 0, 0))
             self.draw_board()
@@ -188,13 +185,14 @@ class ChessGame:
 
             if self.board.is_checkmate() or self.board.is_game_over():
                 time.sleep(3)
-                self.display_game_over()
+                self.display_game_over(player, ai_type)
                 pygame.display.update()
 
         pygame.quit()
 
 
 if __name__ == "__main__":
-    current_player = "player"  # player or stockfish
+    current_player = "stockfish"  # player or stockfish
+    ai_type = "custom" #stockfish or custom
     game = ChessGame()
-    game.run(current_player)
+    game.run(current_player, ai_type)

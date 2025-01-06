@@ -1,8 +1,10 @@
 import chess
 import time
+from stockfish import Stockfish
 
 # Transposition table to store previously evaluated positions
 transposition_table = {}
+stockfish = Stockfish("../stockfish/stockfish-windows-x86-64-avx2.exe")
 
 # Evaluation Function with Pawn Promotion Consideration
 def evaluate(board):
@@ -65,7 +67,6 @@ def evaluate(board):
     # Combine all evaluation factors
     return value + center_control + development_bonus + king_safety + mobility_score + passed_pawn_bonus + promotion_bonus
 
-
 # Check if a pawn is passed
 def is_passed_pawn(board, pawn_square, color):
     direction = 1 if color == chess.WHITE else -1
@@ -102,14 +103,70 @@ def order_moves(board, legal_moves):
     move_scores.sort(key=lambda x: x[1], reverse=True)
     return [move for move, _ in move_scores]
 
-# Minimax with Alpha-Beta Pruning and Transposition Table
-def minimax(board, depth, maximizing_player, alpha, beta):
+def evaluate_stockfish(board):
+    stockfish.set_fen_position(board.fen())
+    eval = stockfish.get_evaluation()
+
+    if eval['type'] == 'cp':
+        return eval['value']
+    elif eval['type'] == 'mate':
+        return 10000 if eval['value'] > 0 else -10000
+
+    return 0
+
+# # Minimax with Alpha-Beta Pruning and Transposition Table
+# def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
+#     board_hash = hash(board.fen())
+#     if board_hash in transposition_table:
+#         return transposition_table[board_hash]
+#
+#     if depth == 0 or board.is_game_over():
+#         evaluation = None
+#         if ai_type == "custom":
+#             evaluation = evaluate(board)
+#         elif ai_type == "stockfish":
+#             evaluation = evaluate_stockfish(board)
+#         transposition_table[board_hash] = evaluation
+#         return evaluation
+#
+#     legal_moves = list(board.legal_moves)
+#     legal_moves = order_moves(board, legal_moves)
+#
+#     if maximizing_player:
+#         max_eval = float('-inf')
+#         for move in legal_moves:
+#             board.push(move)
+#             eval = -minimax(board, depth - 1, False, -beta, -alpha, ai_type)
+#             board.pop()
+#             max_eval = max(max_eval, eval)
+#             alpha = max(alpha, eval)
+#             if beta <= alpha:
+#                 break  # Beta cut-off
+#         transposition_table[board_hash] = max_eval
+#         return max_eval
+#     else:
+#         min_eval = float('inf')
+#         for move in legal_moves:
+#             board.push(move)
+#             eval = -minimax(board, depth - 1, True, -beta, -alpha, ai_type)
+#             board.pop()
+#             min_eval = min(min_eval, eval)
+#             beta = min(beta, eval)
+#             if beta <= alpha:
+#                 break  # Alpha cut-off
+#         transposition_table[board_hash] = min_eval
+#         return min_eval
+
+def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
     board_hash = hash(board.fen())
     if board_hash in transposition_table:
         return transposition_table[board_hash]
 
     if depth == 0 or board.is_game_over():
-        evaluation = evaluate(board)
+        if ai_type == "custom":
+            evaluation = evaluate(board)
+        elif ai_type == "stockfish":
+            evaluation = evaluate_stockfish(board)
         transposition_table[board_hash] = evaluation
         return evaluation
 
@@ -120,7 +177,7 @@ def minimax(board, depth, maximizing_player, alpha, beta):
         max_eval = float('-inf')
         for move in legal_moves:
             board.push(move)
-            eval = -minimax(board, depth - 1, False, -beta, -alpha)
+            eval = minimax(board, depth - 1, False, alpha, beta, ai_type)
             board.pop()
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
@@ -132,7 +189,7 @@ def minimax(board, depth, maximizing_player, alpha, beta):
         min_eval = float('inf')
         for move in legal_moves:
             board.push(move)
-            eval = -minimax(board, depth - 1, True, -beta, -alpha)
+            eval = minimax(board, depth - 1, True, alpha, beta, ai_type)
             board.pop()
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
@@ -141,7 +198,8 @@ def minimax(board, depth, maximizing_player, alpha, beta):
         transposition_table[board_hash] = min_eval
         return min_eval
 
-def iterative_deepening(board, max_depth, time_limit):
+
+def iterative_deepening(board, max_depth, time_limit, player, ai_type):
     best_move = None
     start_time = time.time()
 
@@ -156,12 +214,15 @@ def iterative_deepening(board, max_depth, time_limit):
                 return best_move
 
             board.push(move)
-            score = -minimax(board, depth - 1, False, -beta, -alpha)
+            score = minimax(board, depth - 1, player, -beta, -alpha, ai_type)
             board.pop()
 
             if score > alpha:
                 alpha = score
                 current_best_move = move
+
+            if alpha >= beta:  # Prune the remaining moves
+                break
 
         best_move = current_best_move
 
@@ -169,3 +230,35 @@ def iterative_deepening(board, max_depth, time_limit):
             break
 
     return best_move
+
+# def iterative_deepening(board, max_depth, time_limit, ai_type):
+#     best_move = None
+#     start_time = time.time()
+#
+#     for depth in range(1, max_depth + 1):
+#         alpha, beta = -float('inf'), float('inf')
+#         current_best_move = None
+#         legal_moves = list(board.legal_moves)
+#         legal_moves = order_moves(board, legal_moves)
+#
+#         for move in legal_moves:
+#             if time.time() - start_time >= time_limit:
+#                 return best_move
+#
+#             board.push(move)
+#             score = -minimax(board, depth - 1, False, -beta, -alpha, ai_type)
+#             board.pop()
+#
+#             if score > alpha:
+#                 alpha = score
+#                 current_best_move = move
+#
+#
+#         best_move = current_best_move
+#
+#         if time.time() - start_time >= time_limit:
+#             break
+#
+#     return best_move
+
+
