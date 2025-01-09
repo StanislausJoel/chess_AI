@@ -163,6 +163,8 @@ def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
         return transposition_table[board_hash]
 
     if depth == 0 or board.is_game_over():
+        evaluation = None
+
         if ai_type == "custom":
             evaluation = evaluate(board)
         elif ai_type == "stockfish":

@@ -166,14 +166,13 @@ class ChessGame:
                     self.running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN and player == "player" and self.board.turn:
                     self.handle_click(event.pos)
-                else:
+                elif player != "player":
                     time.sleep(0.5)
                     self.ai_move(player)
 
                 self.screen.fill((0, 0, 0))
                 self.draw_board()
                 pygame.display.update()
-
 
             if not self.board.turn:
                 self.ai_move(ai_type)
