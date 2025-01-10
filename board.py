@@ -182,7 +182,7 @@ class ChessGame:
 
     def ai_move(self, ai_type):
         time.sleep(0.5)
-        max_depth = 3
+        max_depth = 5
         time_limit = 10
 
         best_move = iterative_deepening(self.board, max_depth, time_limit, self.board.turn, ai_type)
