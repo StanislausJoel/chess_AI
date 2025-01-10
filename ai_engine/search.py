@@ -96,7 +96,7 @@ def order_moves(board, legal_moves):
     move_scores = []
     for move in legal_moves:
         board.push(move)
-        score = evaluate_stockfish(board)  # Quick evaluation
+        score = evaluate_stockfish(board)
         board.pop()
         move_scores.append((move, score))
     move_scores.sort(key=lambda x: x[1], reverse=True)
@@ -130,9 +130,7 @@ def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
         return evaluation
 
     legal_moves = list(board.legal_moves)
-    # legal_moves = order_moves(board, legal_moves)
-
-    # print(legal_moves)
+    legal_moves = order_moves(board, legal_moves)
 
     if maximizing_player:
         max_eval = float('-inf')
@@ -143,7 +141,7 @@ def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
             if beta <= alpha:
-                break  # Beta cut-off
+                break
         transposition_table[board_hash] = max_eval
         return max_eval
     else:
@@ -155,14 +153,13 @@ def minimax(board, depth, maximizing_player, alpha, beta, ai_type):
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
             if beta <= alpha:
-                break  # Alpha cut-off
+                break
         transposition_table[board_hash] = min_eval
         return min_eval
 
 def iterative_deepening(board, max_depth, time_limit, player, ai_type):
     best_move = None
     start_time = time.time()
-    maximizing = True if player == chess.WHITE else False
 
     for depth in range(1, max_depth):
         alpha, beta = -float('inf'), float('inf')
@@ -176,6 +173,7 @@ def iterative_deepening(board, max_depth, time_limit, player, ai_type):
 
             board.push(move)
             score = minimax(board, depth, player, alpha, beta, ai_type)
+            # score = minimax(board, depth, alpha, beta, player, ai_type)
             board.pop()
 
             if score > alpha:
@@ -283,14 +281,13 @@ def iterative_deepening(board, max_depth, time_limit, player, ai_type):
 #     return best_move
 
 # def iterative_deepening(board, max_depth, time_limit, player, ai_type):
-#     maximizing = True if player == chess.WHITE else False
-#     best_score = float('-inf') if maximizing else float('inf')
+#     best_score = float('-inf') if player else float('inf')
 #     best_move = None
 #
 #     start_time = time.time()
 #
 #     for depth in range(1, max_depth + 1):
-#         current_best_score = float('-inf') if maximizing else float('inf')
+#         current_best_score = float('-inf') if player else float('inf')
 #         current_best_move = None
 #         legal_moves = list(board.legal_moves)
 #
@@ -302,13 +299,13 @@ def iterative_deepening(board, max_depth, time_limit, player, ai_type):
 #                 return best_move if best_move else current_best_move
 #
 #             board.push(move)
-#             score = minimax(board, depth, float('-inf'), float('inf'), not maximizing, ai_type)
+#             score = minimax(board, depth, float('-inf'), float('inf'), player, ai_type)
 #             board.pop()
 #
-#             if (maximizing and score > current_best_score) or (not maximizing and score < current_best_score):
+#             if (player and score > current_best_score) or (not player and score < current_best_score):
 #                 current_best_score, current_best_move = score, move
 #
-#         if (maximizing and current_best_score > best_score) or (not maximizing and current_best_score < best_score):
+#         if (player and current_best_score > best_score) or (not player and current_best_score < best_score):
 #             best_score, best_move = current_best_score, current_best_move
 #
 #         if time.time() - start_time >= time_limit:
